@@ -11,7 +11,7 @@ prerequisites:
 	c. a shopify partner account with a development store created
 
 step 1: clone the project and install dependencies
-	a. git clone //
+	a. git clone https://github.com/lancers2020/herperspecteev.git
 	b. cd herperspecteev/backend
 	c. npm install
 	d. cd ../frontend
