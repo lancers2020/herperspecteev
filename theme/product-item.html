@@ -1,0 +1,156 @@
+<style>
+    /* Standalone Action Button Framework */
+    .fav-toggle-btn-main {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 44rem; /* Standard field length alignment */
+    min-height: 4.6rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    background-color: transparent; /* No background color */
+    color: rgb(var(--color-foreground));
+    border: var(--buttons-border-width, 1px) solid rgba(var(--color-foreground), 0.3);
+    {% comment %} border-radius: var(--buttons-radius, 4px); {% endcomment %}
+    border-radius: 4px;
+    font-size: 1.5rem;
+    letter-spacing: 0.1rem;
+    {% comment %} font-weight: 600; {% endcomment %}
+    cursor: pointer;
+    box-shadow: 0 0 0 0 rgba(var(--color-foreground), 0); /* Base state: hidden shadow */
+    {% comment %} transition: border-width 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; {% endcomment %}
+    }
+    
+    /* Focus Highlight State on Hover */
+    .fav-toggle-btn-main:hover {
+    background-color: transparent; /* Ensures background stays transparent */
+    border-color: rgb(var(--color-foreground));
+    border-width: calc(var(--buttons-border-width, 1px) + 1px); /* Slightly widens the border */
+    /* Adds a modern, crisp focus shadow that matches your theme's text/foreground color */
+    box-shadow: 0 0 8px 2px rgba(var(--color-foreground), 0.15); 
+    }
+
+    /* Active Favorited State UI */
+    .fav-toggle-btn-main.is-favorited {
+    background-color: transparent; /* Ensures background stays transparent */
+    border: var(--buttons-border-width, 1px) solid rgb(var(--color-foreground));
+    }
+    
+    /* Maintain the hover highlight even if the item is already favorited */
+    .fav-toggle-btn-main.is-favorited:hover {
+    border-width: calc(var(--buttons-border-width, 1px) + 1px);
+    box-shadow: 0 0 8px 2px rgba(var(--color-foreground), 0.15);
+    }
+</style>
+
+{%- if request.page_type == 'product' -%}
+    <div class="product-favorites-toggle-container">
+    <button type="button" id="main-fav-toggle-btn" class="fav-toggle-btn-main" 
+        data-product-id="{{ product.id }}" 
+        data-product-title="{{ product.title | escape }}"
+        data-product-handle="{{ product.handle }}"
+        data-product-image="{{ product.featured_image | image_url: width: 450 }}"
+        data-product-price="{{ product.price | money }}">
+        <span>Checking List...</span>
+    </button>
+    </div>
+{%- endif -%}
+
+<script>
+    (function() {
+    const API_URL = "https://thirsting-quotable-cheek.ngrok-free.dev/api/public/favorites";
+    const toggleBtn = document.getElementById("main-fav-toggle-btn");
+    const pageProductId = "{{ product.id }}";
+
+    const requestHeaders = {
+        "ngrok-skip-browser-warning": "true",
+        "Content-Type": "application/json"
+    };
+
+    let globalFavoritesCached = [];
+
+    /* ---------------- FETCH & EVALUATE USER LIST ---------------- */
+    async function checkFavoritesStatus() {
+        if (!toggleBtn) return;
+        
+        try {
+        const res = await fetch(API_URL, { method: "GET", headers: requestHeaders });
+        globalFavoritesCached = await res.json();
+        updateToggleButtonUI();
+        } catch (err) {
+        console.error("Failed to sync current favorites payload index:", err);
+        toggleBtn.innerHTML = "<span>Favorites Offline</span>";
+        toggleBtn.disabled = true;
+        }
+    }
+
+    /* ---------------- UI RADIAL TOGGLE RE-MAPPING ---------------- */
+    function updateToggleButtonUI() {
+        if (!toggleBtn) return;
+        
+        const matchedRecord = globalFavoritesCached.find(fav => String(fav.productId) === String(pageProductId));
+        
+        if (matchedRecord) {
+        toggleBtn.className = "fav-toggle-btn-main is-favorited";
+        toggleBtn.innerHTML = "<span>Remove from Favorites</span>";
+        toggleBtn.setAttribute("data-record-id", matchedRecord.id);
+        } else {
+        toggleBtn.className = "fav-toggle-btn-main";
+        toggleBtn.innerHTML = "<span>Add to Favorites</span>";
+        toggleBtn.removeAttribute("data-record-id");
+        }
+    }
+
+    /* ---------------- REMOVE ACTION DISPATCHER ---------------- */
+    async function removeFavorite(id) {
+        try {
+        const res = await fetch(`${API_URL}/${id}`, { method: "DELETE", headers: requestHeaders });
+        if (!res.ok) throw new Error("Deletion request rejection");
+        window.dispatchEvent(new Event("favorites:updated"));
+        } catch (err) {
+        console.error("Delete sequence failed:", err);
+        }
+    }
+
+    /* ---------------- INTERACTIVE CLICK CONTROLLER ---------------- */
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", async function() {
+        const targetRecordId = toggleBtn.getAttribute("data-record-id");
+        toggleBtn.disabled = true;
+        toggleBtn.style.opacity = "0.6";
+
+        if (targetRecordId) {
+            await removeFavorite(targetRecordId);
+        } else {
+            try {
+            // UPDATED PAYLOAD: Grabs the enriched attributes and sends them to your DB
+            const payload = {
+                productId: toggleBtn.getAttribute("data-product-id"),
+                productTitle: toggleBtn.getAttribute("data-product-title"),
+                productHandle: toggleBtn.getAttribute("data-product-handle"),
+                productImage: toggleBtn.getAttribute("data-product-image"),
+                productPrice: toggleBtn.getAttribute("data-product-price")
+            };
+            
+            const res = await fetch(API_URL, {
+                method: "POST",
+                headers: requestHeaders,
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                window.dispatchEvent(new Event("favorites:updated"));
+            }
+            } catch (e) {
+            console.error("Addition request error:", e);
+            }
+        }
+        toggleBtn.disabled = false;
+        toggleBtn.style.opacity = "1";
+        });
+    }
+
+    window.addEventListener("favorites:updated", checkFavoritesStatus);
+    checkFavoritesStatus();
+    })();
+</script>

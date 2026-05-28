@@ -1,0 +1,396 @@
+<style>
+  /* Base Container Styles mapped to Shopify's layout rhythms */
+  .fav-section-wrapper {
+    margin-top: var(--spacing-sections-desktop, 4rem);
+    margin-bottom: var(--spacing-sections-desktop, 4rem);
+  }
+  @media screen and (max-width: 749px) {
+    .fav-section-wrapper {
+      margin-top: var(--spacing-sections-mobile, 3rem);
+      margin-bottom: var(--spacing-sections-mobile, 3rem);
+    }
+  }
+
+  .fav-section-title {
+    margin-bottom: 2.5rem;
+    font-family: var(--font-heading-family);
+    font-style: var(--font-heading-style);
+    font-weight: var(--font-heading-weight);
+    font-size: calc(var(--font-heading-scale) * 4rem);
+    letter-spacing: calc(var(--font-heading-scale) * .06rem);
+    word-break: break-word;
+  }
+
+  /* Horizontal Slider Track Layout */
+  .fav-horizontal-scroll {
+    display: flex;
+    gap: var(--grid-desktop-horizontal-spacing, 20px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 12px 0px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  .fav-horizontal-scroll::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  @media screen and (max-width: 749px) {
+    .fav-horizontal-scroll {
+      gap: var(--grid-mobile-horizontal-spacing, 15px);
+    }
+  }
+
+  /* Card Component Styling matching Shopify global config specs */
+  .fav-item-card {
+    flex: 0 0 calc(25% - (var(--grid-desktop-horizontal-spacing, 20px) * 3 / 4));
+    min-width: 230px;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    background: rgb(var(--color-background));
+    border-radius: var(--card-corner-radius, 8px);
+    padding: var(--card-image-padding, 0px);
+    box-shadow: none;
+    transition: transform var(--duration-short, 0.1s) ease;
+  }
+  @media screen and (max-width: 749px) {
+    .fav-item-card {
+      flex: 0 0 calc(50% - (var(--grid-mobile-horizontal-spacing, 15px) / 2));
+    }
+  }
+
+  /* Clickable Image Wrap Framework */
+  .fav-card-link-wrapper {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    cursor: pointer;
+  }
+
+  /* Media Image Box Wrapper with Hidden Overflow to clamp zoom boundaries */
+  .fav-card-image-box {
+    width: 100%;
+    aspect-ratio: var(--product-card-image-ratio, 1 / 1);
+    background-color: rgba(var(--color-foreground), 0.03);
+    border-radius: var(--card-corner-radius, 8px);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fav-card-image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: var(--product-card-image-fit, cover);
+    transition: transform var(--duration-long, 0.4s) cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .fav-item-card:hover .fav-card-image-box img {
+    transform: scale(1.08);
+  }
+  
+  .fav-img-placeholder {
+    font-size: 1.2rem;
+    letter-spacing: 0.1rem;
+    text-transform: uppercase;
+    color: rgba(var(--color-foreground), 0.4);
+  }
+
+  /* Text Details Layout matching standard product card headers */
+  .fav-card-details {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 var(--card-image-padding, 1rem);
+  }
+  .fav-card-details strong {
+    display: block;
+    font-size: calc(var(--font-body-scale) * 1.4rem);
+    font-family: var(--font-body-family);
+    color: rgb(var(--color-foreground));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: calc(1 + .5 / max(1, var(--font-body-scale)));
+  }
+  
+  .fav-card-price {
+    font-size: calc(var(--font-body-scale) * 1.4rem);
+    color: rgb(var(--color-foreground));
+    font-weight: 400;
+    letter-spacing: 0.1rem;
+  }
+
+  /* Interactive Pill Button Framework adjustments */
+  .fav-action-row {
+    margin-top: auto;
+    width: 100%;
+    padding: var(--card-image-padding, 1rem);
+  }
+  .fav-remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 3.6rem;
+    padding: 1rem 2rem;
+    background-color: transparent;
+    color: rgb(var(--color-foreground));
+    border: calc(var(--buttons-border-width, 1px) + 1px) solid rgba(var(--color-foreground), 0.2);
+    border-radius: 4px;
+    font-size: calc(var(--font-body-scale) * 1.5rem);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--duration-short, 0.1s) ease, border-color var(--duration-short, 0.1s) ease;
+    box-shadow: 0 0 0 0 rgba(var(--color-foreground), 0);
+  }
+  .fav-remove-btn:hover {
+    border-color: rgb(var(--color-foreground));
+    border-width: calc(var(--buttons-border-width, 1px) + 1px);
+    box-shadow: 0 0 8px 2px rgba(var(--color-foreground), 0.15); 
+  }
+  
+  .fav-toggle-btn-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 4.6rem;
+    margin-top: 1rem;
+    background-color: transparent;
+    color: rgb(var(--color-foreground));
+    border: 0.1rem solid rgba(var(--color-foreground), 0.2);
+    border-radius: var(--inputs-radius-outset);
+    font-size: 1.5rem;
+    letter-spacing: 0.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border 0.2s ease;
+  }
+  .fav-toggle-btn-main.is-favorited {
+    background-color: rgba(var(--color-foreground), 0.05);
+    border: 0.1rem solid rgb(var(--color-foreground));
+  }
+
+  /* ---------------- NEW BEAUTIFIED SKELETON ANIMATIONS ---------------- */
+  @keyframes favShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .fav-skeleton-card {
+    pointer-events: none;
+  }
+
+  .fav-skeleton-glow {
+    background: linear-gradient(90deg, 
+      rgba(var(--color-foreground), 0.04) 25%, 
+      rgba(var(--color-foreground), 0.09) 37%, 
+      rgba(var(--color-foreground), 0.04) 63%
+    );
+    background-size: 200% 100%;
+    animation: favShimmer 1.4s ease infinite;
+  }
+
+  .fav-skeleton-image {
+    width: 100%;
+    aspect-ratio: var(--product-card-image-ratio, 1 / 1);
+    border-radius: var(--card-corner-radius, 8px);
+    margin-bottom: 1.5rem;
+  }
+
+  .fav-skeleton-text {
+    height: 1.6rem;
+    border-radius: 4px;
+    margin-bottom: 0.8rem;
+  }
+  .fav-skeleton-text.title { width: 75%; }
+  .fav-skeleton-text.price { width: 40%; }
+
+  .fav-skeleton-button {
+    height: 3.6rem;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: auto;
+  }
+</style>
+
+{%- if request.page_type == 'product' -%}
+  <div class="product-favorites-toggle-container">
+    <button type="button" id="main-fav-toggle-btn" class="fav-toggle-btn-main" 
+      data-product-id="{{ product.id }}" 
+      data-product-title="{{ product.title | escape }}"
+      data-product-handle="{{ product.handle }}"
+      data-product-image="{{ product.featured_image | image_url: width: 450 }}"
+      data-product-price="{{ product.price | money }}">
+      <span>Checking List...</span>
+    </button>
+  </div>
+{%- endif -%}
+
+<div class="page-width fav-section-wrapper">
+  <h3 class="fav-section-title">Customer Favorites</h3>
+
+  <div id="favorites-container" class="fav-horizontal-scroll">
+    {%- for i in (1..4) -%}
+      <div class="fav-item-card fav-skeleton-card">
+        <div class="fav-skeleton-image fav-skeleton-glow"></div>
+        <div class="fav-card-details">
+          <div class="fav-skeleton-text title fav-skeleton-glow"></div>
+          <div class="fav-skeleton-text price fav-skeleton-glow"></div>
+        </div>
+        <div class="fav-action-row">
+          <div class="fav-skeleton-button fav-skeleton-glow"></div>
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+<script>
+  (function() {
+    const API_URL = "https://thirsting-quotable-cheek.ngrok-free.dev/api/public/favorites";
+    const container = document.getElementById("favorites-container");
+    const toggleBtn = document.getElementById("main-fav-toggle-btn");
+    const pageProductId = "{{ product.id }}";
+
+    const requestHeaders = {
+      "ngrok-skip-browser-warning": "true",
+      "Content-Type": "application/json"
+    };
+
+    let globalFavoritesCached = [];
+
+    /* ---------------- FETCH & INSTANTLY RENDER SLIDER CARDS ---------------- */
+    async function loadFavorites() {
+      try {
+        const res = await fetch(API_URL, { method: "GET", headers: requestHeaders });
+        globalFavoritesCached = await res.json();
+
+        updateToggleButtonUI();
+
+        if (!container) return;
+
+        if (!globalFavoritesCached.length) {
+          container.innerHTML = "<p style='color: rgba(var(--color-foreground), 0.5); padding: 10px 0;'>No favorites yet.</p>";
+          return;
+        }
+
+        const rootUrl = window.Shopify?.routes?.root || '/';
+
+        container.innerHTML = globalFavoritesCached.map(fav => {
+          const productUrl = `${rootUrl}products/${fav.productHandle || ''}`;
+          const imageHtml = fav.productImage 
+            ? `<img src="${fav.productImage}" alt="${fav.productTitle || 'Product Image'}" loading="lazy" />`
+            : `<span class="fav-img-placeholder">No Photo</span>`;
+
+          return `
+            <div class="fav-item-card" id="card-node-${fav.id}">
+              <a href="${productUrl}" class="fav-card-link-wrapper">
+                <div class="fav-card-image-box">
+                  ${imageHtml}
+                </div>
+                <div class="fav-card-details">
+                  <strong title="${fav.productTitle || ''}">${fav.productTitle || 'Product'}</strong>
+                  <div class="fav-card-price">${fav.productPrice || ''}</div>
+                </div>
+              </a>
+              <div class="fav-action-row">
+                <button type="button" class="fav-remove-btn" data-id="${fav.id}">
+                  Remove
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+      } catch (err) {
+        console.error("Grid Assembly Error:", err);
+        if (container) {
+          container.innerHTML = "<p style='color: rgb(var(--color-error));'>Failed to load favorites list.</p>";
+        }
+      }
+    }
+
+    /* ---------------- REMOVE FAVORITE DATA INTERACTION ---------------- */
+    async function removeFavorite(id) {
+      try {
+        const res = await fetch(`${API_URL}/${id}`, { method: "DELETE", headers: requestHeaders });
+        if (!res.ok) throw new Error("Deletion request rejection");
+        window.dispatchEvent(new Event("favorites:updated"));
+      } catch (err) {
+        console.error("Delete sequence crash:", err);
+      }
+    }
+
+    /* ---------------- MANAGE ADD/REMOVE TOGGLE SECTIONS ---------------- */
+    function updateToggleButtonUI() {
+      if (!toggleBtn) return;
+      
+      const matchedRecord = globalFavoritesCached.find(fav => String(fav.productId) === String(pageProductId));
+      
+      if (matchedRecord) {
+        toggleBtn.className = "fav-toggle-btn-main is-favorited";
+        toggleBtn.innerHTML = "<span>Remove from Favorites</span>";
+        toggleBtn.setAttribute("data-record-id", matchedRecord.id);
+      } else {
+        toggleBtn.className = "fav-toggle-btn-main";
+        toggleBtn.innerHTML = "<span>Add to Favorites</span>";
+        toggleBtn.removeAttribute("data-record-id");
+      }
+    }
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", async function() {
+        const targetRecordId = toggleBtn.getAttribute("data-record-id");
+        toggleBtn.disabled = true;
+        toggleBtn.style.opacity = "0.6";
+
+        if (targetRecordId) {
+          await removeFavorite(targetRecordId);
+        } else {
+          try {
+            const payload = {
+              productId: toggleBtn.getAttribute("data-product-id"),
+              productTitle: toggleBtn.getAttribute("data-product-title"),
+              productHandle: toggleBtn.getAttribute("data-product-handle"),
+              productImage: toggleBtn.getAttribute("data-product-image"),
+              productPrice: toggleBtn.getAttribute("data-product-price")
+            };
+            const res = await fetch(API_URL, {
+              method: "POST",
+              headers: requestHeaders,
+              body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+              window.dispatchEvent(new Event("favorites:updated"));
+            }
+          } catch (e) {
+            console.error("Addition request error:", e);
+          }
+        }
+        toggleBtn.disabled = false;
+        toggleBtn.style.opacity = "1";
+      });
+    }
+
+    if (container) {
+      container.addEventListener("click", function(e) {
+        if (e.target && e.target.classList.contains("fav-remove-btn")) {
+          const favoriteId = e.target.getAttribute("data-id");
+          if (favoriteId) {
+            removeFavorite(favoriteId);
+          }
+        }
+      });
+    }
+
+    window.addEventListener("favorites:updated", loadFavorites);
+    loadFavorites();
+  })();
+</script>
